@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoKino</title>
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --accent-color: #38bdf8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Notice Bar Layout */
+        #notice-container {
+            background-color: var(--accent-color);
+            color: #000;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 15px;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .notice-label {
+            white-space: nowrap;
+            background-color: var(--accent-color);
+            z-index: 2;
+            padding-right: 10px;
+        }
+
+        .marquee-wrapper {
+            overflow: hidden;
+            width: 100%;
+            display: inline-block;
+        }
+
+        #notice-bar {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: marquee 12s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        header h1 {
+            letter-spacing: 1px;
+            font-size: 26px;
+        }
+
+        /* Main Gallery Grid */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .photo-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .photo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .price-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .photo-info {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Modal / Popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-content img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .buy-info {
+            line-height: 1.8;
+            font-size: 15px;
+            margin-top: 10px;
+            text-align: left;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .buy-info a {
+            color: #2563eb;
+            word-break: break-all;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .buy-info a:hover {
+            text-decoration: underline;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .empty-msg {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 50px 0;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Notice Section with Fixed Label & Moving Text -->
+    <div id="notice-container">
+        <span class="notice-label">এডমিন নোটিশ:</span>
+        <div class="marquee-wrapper">
+            <span id="notice-bar"></span>
+        </div>
+    </div>
+
+    <header>
+        <h1>PhotoKino</h1>
+    </header>
+
+    <div class="container">
+        <div class="gallery" id="photo-gallery"></div>
+    </div>
+
+    <!-- Modal Popup -->
+    <div class="modal" id="buyModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <img id="modal-img" src="" alt="Selected Photo">
+            <h3 id="modal-title"></h3>
+            <div class="buy-info">
+                <p>এই ছবিটা কিনতে চাইলে টেলিগ্রামে যোগাযোগ করুন: <a id="tg-link" href="https://t.me/Shehzayt" target="_blank">t.me/Shehzayt</a></p>
+                <p style="margin-top: 8px;">অথবা</p>
+                <p style="margin-top: 8px;">এই ছবিটা কিনতে চাইলে ইমেইল করুন: <a id="mail-link" href="mailto:ayat67750@gmail.com">ayat67750@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadData() {
+            // Apply Theme Color
+            const savedColor = localStorage.getItem('pk_theme_color') || '#0f172a';
+            document.documentElement.style.setProperty('--primary-color', savedColor);
+
+            // Apply Notice
+            const notice = localStorage.getItem('pk_notice');
+            const noticeContainer = document.getElementById('notice-container');
+            const noticeBar = document.getElementById('notice-bar');
+            
+            if (notice && notice.trim() !== "") {
+                noticeBar.innerText = notice;
+                noticeContainer.style.display = 'flex';
+            } else {
+                noticeContainer.style.display = 'none';
+            }
+
+            // Render Photos
+            const gallery = document.getElementById('photo-gallery');
+            const photos = JSON.parse(localStorage.getItem('pk_photos')) || [];
+            gallery.innerHTML = '';
+
+            if (photos.length === 0) {
+                gallery.innerHTML = '<p class="empty-msg">বর্তমানে কোনো ছবি উপলব্ধ নেই।</p>';
+            } else {
+                photos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = 'photo-card';
+                    card.onclick = () => openModal(photo.url, photo.title);
+                    card.innerHTML = `
+                        <span class="price-badge">৳ ${photo.price}</span>
+                        <img src="${photo.url}" alt="${photo.title}">
+                        <div class="photo-info">${photo.title}</div>
+                    `;
+                    gallery.appendChild(card);
+                });
+            }
+        }
+
+        window.addEventListener('storage', loadData);
+
+        function openModal(imgUrl, title) {
+            document.getElementById('modal-img').src = imgUrl;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('buyModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('buyModal').style.display = 'none';
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
